@@ -9,8 +9,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+3. Load the tidyverse, read in data
 ```{r}
-# Load the tidyverse, read in data
 
 # load tidyverse
 library(tidyverse)
@@ -20,9 +20,8 @@ salmon <- read_csv("salmon_imports.csv")
 
 ```
 
+4. Exploratory scatterplot
 ```{r}
-
-# 4. Exploratory scatterplot
 
 # If we’re going to use linear regression, we should have reason to think that a linear relationship exists between variables. So go ahead and look at the data (year on x-axis, imports on y-axis).
 
@@ -38,9 +37,127 @@ salmon_scatter
 
 ```
 
+5. Linear regression in R
 ```{r}
 
-# 
+# The general syntax for linear regression in R is: model_name <- lm(y_variable ~ x_variable, data = df_name). So, if I have a data frame called ‘salmon’ containing variables ‘year’ and ‘salmon_fresh,’ I would use: salmon_model <- lm(salmon_fresh ~ year, data = salmon)
+
+# a. Perform linear regression to describe the trend in total volume of fresh salmon imported to the U.S.from 1990 - 2017.
+salmon_model <- lm(salmon_fresh ~ year, data = salmon)
+
+# b. Call the model name to see the intercept and slope for the model. Recall: y = β0 + β1x + E
+salmon_model
+
+# c. Write out the model equation, including the actual variables and coefficients instead of β and x/y. For example (these are not the actual model coefficients you’ll find): Imports(tons) = −400 + 25(Year)
+# Salmon imports(1000s of lbs) = -14982940 + 7550(year) ????
+
+# d. Think about the model equation that you found to describe trends in salmon imports. In your markdown document, answer the following in 1-sentence each: 
+  # • What does the slope mean in the context of this model? 
+  # • What does the y-intercept mean in the context of this model? Why is that concerning? What        does this mean about extrapolating this model for past values?
 
 ```
 
+The slope means ???
+The y-intercept means ??? This is concerning because ??? This means 
+
+6. Model diagnostics
+```{r}
+
+# Use plot(model_name) to view model diagnostics in the ‘Plots’ tab (press Enter in the Console to contine to subsequent diagnostic plots). Explore the diagnostic plots to answer the following:
+  # • Do residuals appear normally distributed?
+  # • Any concerns about heteroscedasticity or outliers?
+      # There seem to be outliers.
+# To view all four diagnostic plots at once (and have them appear in your knitted document), you can use the following:
+  # par(mfrow = c(2,2))
+  # plot(model_name)
+
+par(mfrow = c(2,2))
+plot(salmon_model)
+
+```
+
+7. Explore model fit and significance
+```{r}
+
+# Use summary(model_name) to see the detailed model information, including model fit information (e.g. R2 and coefficient standard errors) and statistics.
+summary(salmon_model)
+
+# See the lecture materials to interpret each component. Answer the following:
+  # • Does year significantly predict salmon imports?
+        # 
+  # • What does the R2 value actually mean in words?
+        # 95% of variance in salmon imports is explained by year.
+  # • What proportion of the variance in salmon imports is NOT explained by year?
+        # 5%
+
+```
+
+8. Prepare a final graph
+```{r}
+
+# See the example code below to create a final graph of the linear regression model with the original data, model and 95% confidence interval for predictions.
+# The code and graph shown below are created with:
+  # • An original data frame called ‘salmon’
+  # • . . . which contains x and y variables ‘year’ and ‘salmon_fresh’
+  # • . . . for which a linear model was found, called ‘salmon_model’
+#If your data frame, columns, or model name differ, you’ll need to update accordingly.
+# You should know what each component and argument of this graphics code actually does. Explore (i.e. Google) geom_smooth() to better understand what the plotted CI ribbon actually means, and to see other alternatives within the geom.
+
+salmon_final_graph <- ggplot(salmon, aes(x = year, y = salmon_fresh)) +
+  geom_point() +
+  geom_smooth(method = lm, se = TRUE, size = 0.5, color = "gray20") + # "geom_smooth()" = Aids the eye in seeing patterns in the presence of overplotting. # "method" = Smoothing method (function) to use, accepts either a character vector, e.g. "auto", "lm", "glm", "gam", "loess" or a function, e.g. MASS::rlm or mgcv::gam, base::lm, or base::loess. # "se" = Display confidence interval around smooth? (TRUE by default, see level to control.) 
+  theme_bw() +
+  scale_x_continuous(expand = c(0,0), limits = c(1990, 2017)) +
+  labs(x = "Year", y = "U.S. Annual Fresh Salmon Imports\n(1,000 pounds)")
+
+salmon_final_graph
+
+```
+
+9. Make predictions using the model
+```{r}
+
+# Let’s say we want to use our model to make predictions for U.S. fresh salmon imports in years 2022, 2024, 2026 and 2028.
+  # • Option 1 (not recommended): Plug each of those years into the model equation separately to     calculate the expected U.S. imports.
+  # • Option 2 (recommended): Create a data frame containing the ‘new values’ that you want to      make predictions for, feed that into the predict() function
+# Let’s use Option 2. First, we’ll make a data frame called ‘new_years’ containing the sequence of years that we want to make predictions for. Notice that the column name we create is the SAME as the variable name ‘year’ that the model uses.
+
+new_years <- data.frame(year = c(2022, 2024, 2026, 2028))
+
+# View the new data frame you just created (it’s a single column, with heading ‘year’, containing those 4 values).
+new_years
+
+# Then feed that data frame into the predict() function, letting it know which model to use to make predictions for the new values. Include interval = “confidence” to also report the lower and upper bounds of the 95% CI for model fit at each year.
+future_predict <- predict(salmon_model, newdata = new_years, interval = "confidence")
+future_predict
+
+# Bind the prediction outcomes (those are the values in column ‘fit’) with the ‘new_years’ data to actually create a useful table of predicted imports and upper and lower CI:
+predictions <- data.frame(new_years, future_predict)
+predictions
+
+```
+
+10. Find Pearson’s r (correlation)
+```{r}
+
+# Use the cor.test() function to find Pearson’s r for the linear relationship described between year and salmon imports.
+# See ?cor.test to view R documentation in the ‘Help’ window. Notice that the default correlation is Pearson’s r.
+# Generally, if you’re trying to explore the correlation between variable_1 and variable_2 in data frame ‘df’, the function syntax is as follows:
+salmon_pearson <- cor.test(salmon$year, salmon$salmon_fresh)
+salmon_pearson
+
+# a. Calculate Pearson’s r for the year vs. salmon imports linear trend.
+    # Pearson's r = 0.97
+# b. In words: Would you describe this as a weak/strong negative/positive correlation?
+    # This is a strong positive correlation.
+
+```
+
+11. Write a concluding statement about the relationship
+```{r}
+
+# Using the document Communicating Results of Basic Linear Regression (posted on GauchoSpace) as a guide, write a final 1 - 2 sentence statement describing the results of your linear regression and Pearson’s r findings.
+
+```
+
+Year significantly predicts U.S. annual fresh salmon imports (b < 0.001, t(26) = 21.7, p < 0.001) with a strong positive correlation between the two (Pearson’s r = 0.97). The overall model explains a significant amount of variance in sepal width (F(1,26) = 471.9, p < 0.001, R2 = 0.95). Gray region is the 95% confidence interval for the mean predicted value.
