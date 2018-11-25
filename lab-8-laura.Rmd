@@ -9,3 +9,38 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r}
+# Load the tidyverse, read in data
+
+# load tidyverse
+library(tidyverse)
+
+# read in fresh salmon imports csv
+salmon <- read_csv("salmon_imports.csv")
+
+```
+
+```{r}
+
+# 4. Exploratory scatterplot
+
+# If we’re going to use linear regression, we should have reason to think that a linear relationship exists between variables. So go ahead and look at the data (year on x-axis, imports on y-axis).
+
+# Make an exploratory scatterplot in ggplot (recall: geom_point). Do not finalize.
+salmon_scatter <- ggplot(salmon, aes(x = year, y = salmon_fresh)) +
+  geom_point()
+
+salmon_scatter
+
+# As a comment in the code chunk, answer: Overall, does it look like describing the relationship between year and fresh salmon imports using linear regression makes sense? Do you have any concerns about using linear regression to describe the relationship?
+
+# Overall, it looks like linear regression makes sense since the scatterplot looks to show a linear pattern. However, there are some discrepancies in the pattern. Also, thinking about the data, it doesn't make complete sense that salmon imports by year is a linear pattern since the population doesn't grow in a linear pattern.
+
+```
+
+```{r}
+
+# 
+
+```
+
